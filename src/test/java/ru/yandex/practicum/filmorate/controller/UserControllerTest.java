@@ -1,86 +1,69 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.beans.factory.annotation.Autowired;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import org.springframework.test.web.servlet.MockMvc;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.http.MediaType;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-
+import ru.yandex.practicum.filmorate.exception.ElementDoesNotExistException;
+import ru.yandex.practicum.filmorate.exception.EmailAlreadyExistException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.utils.IdGenerator;
 
 import java.time.LocalDate;
 
-@WebMvcTest(UserController.class)
 public class UserControllerTest {
-    @Autowired
-    private MockMvc mockMvc;
-    private final static ObjectMapper MAPPER = new ObjectMapper();
 
-    @BeforeAll
-    public static void beforeAll() {
-        MAPPER.registerModule(new JavaTimeModule());
+    UserController userController;
+
+    @BeforeEach
+    public void beforeAll() {
+        userController = new UserController(new IdGenerator());
     }
 
     @Test
-    public void shouldCreateUser() throws Exception {
+    public void shouldCreateUserWithoutName() {
 
         User user = new User("filmorate@mail.com", "MovieLover", LocalDate.of(1998, 11,
                 12));
-        user.setName("Alex");
 
-        this.mockMvc.perform(post("/users")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(MAPPER.writeValueAsString(user)))
-                .andExpect(status().isOk());
+        User user1 = new User("filmorate@mail.com", "MovieLover", LocalDate.of(1998, 11,
+                12));
+        user1.setName("MovieLover");
+        user1.setId(1);
+        userController.create(user);
+        assertEquals(user1, userController.findAll().get(0));
+
     }
 
     @Test
-    public void shouldNotCreateUserWithInvalidEmail() throws Exception {
+    public void shouldNotUpdateUserWithBadId() {
 
-        User user = new User("ya gmail.ru", "Movie", LocalDate.of(1998, 10, 12));
+        User user = new User("filmorate@mail.com", "Movie", LocalDate.of(1998, 10, 12));
         user.setName("Misha");
-
-        this.mockMvc.perform(post("/users")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(MAPPER.writeValueAsString(user)))
-                .andExpect(status().isBadRequest());
+        user.setId(9);
+        assertThrows(ElementDoesNotExistException.class, () -> userController.put(user));
     }
 
     @Test
-    public void shouldNotCreateUserWithInvalidLogin() throws Exception {
+    public void shouldNotCrateUserIfEmailAlreadyExist() {
 
-        User user = new User("filmorate@mail.com", " ", LocalDate.of(1998, 2, 14));
-        user.setName("Nikita");
+        User user = new User("filmorate@mail.com", "Movie", LocalDate.of(1998, 10, 12));
+        userController.create(user);
 
-        this.mockMvc.perform(post("/users")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(MAPPER.writeValueAsString(user)))
-                .andExpect(status().isBadRequest());
-
-        user = new User("filmorate120@mail.com", "I love test", LocalDate.of(1998, 12, 10));
-
-        this.mockMvc.perform(post("/users")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(MAPPER.writeValueAsString(user)))
-                .andExpect(status().isBadRequest());
+        assertThrows(EmailAlreadyExistException.class, () -> userController.create(user));
     }
 
     @Test
-    public void shouldNotCreateUserWithFutureBirthday() throws Exception {
+    public void shouldNotUpdateUserIfEmailAlreadyExist() {
 
-        User user = new User("filmorate@mail.com", "Movid", LocalDate.of(2222, 12, 19));
-        user.setName("Julia");
+        User user = new User("filmorate@mail.com", "Movie", LocalDate.of(1998, 10, 12));
+        user.setName("Misha");
+        userController.create(user);
+        User user1 = new User("movie@mail.com", "Gena", LocalDate.of(1998, 10, 12));
+        userController.create(user1);
+        user.setId(2);
 
-        this.mockMvc.perform(post("/users")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(MAPPER.writeValueAsString(user)))
-                .andExpect(status().isBadRequest());
+        assertThrows(EmailAlreadyExistException.class, () -> userController.put(user));
     }
 }
