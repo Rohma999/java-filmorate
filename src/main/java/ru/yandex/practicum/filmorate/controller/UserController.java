@@ -45,6 +45,7 @@ public class UserController {
     @PutMapping
     public User put(@Valid @RequestBody User user) {
         if (users.containsKey(user.getId())) {
+            Util.userNameCheck(user);
             if (users.get(user.getId()).getEmail().equals(user.getEmail())) {
                 users.put(user.getId(), user);
                 log.info("Данный пользователя успешно обновлены email {} ", user.getEmail());
