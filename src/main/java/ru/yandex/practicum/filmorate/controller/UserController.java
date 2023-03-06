@@ -34,7 +34,7 @@ public class UserController {
             log.warn("Пользователь с email {} уже существует", user.getEmail());
             throw new EmailAlreadyExistException("Пользователь с email " + user.getEmail() + " уже существует");
         }
-        Util.userNameCheck(user);
+        Util.setUserNameIfEmpty(user);
         user.setId(idGenerator.generateId());
         users.put(user.getId(), user);
         emails.add(user.getEmail());
@@ -45,7 +45,7 @@ public class UserController {
     @PutMapping
     public User put(@Valid @RequestBody User user) {
         if (users.containsKey(user.getId())) {
-            Util.userNameCheck(user);
+            Util.setUserNameIfEmpty(user);
             if (users.get(user.getId()).getEmail().equals(user.getEmail())) {
                 users.put(user.getId(), user);
                 log.info("Данный пользователя успешно обновлены email {} ", user.getEmail());

@@ -30,8 +30,8 @@ public class FilmController {
 
     @PostMapping
     public Film create(@Valid @RequestBody Film film) {
-        if (film.getReleaseDate().isBefore(Util.DATE_LIMIT)) {
-            log.warn("Ошибка при добавлении фильма: дата релиза не может быть ранее " + Util.DATE_LIMIT);
+        if (Util.filmDateCheck(film)) {
+            log.warn("Ошибка при добавлении фильма: дата релиза не может быть ранее {}",Util.DATE_LIMIT);
             throw new ValidationException("Ошибка при добавлении фильма: дата релиза не может быть ранее " + Util.DATE_LIMIT);
         }
         film.setId(idGenerator.generateId());
@@ -44,8 +44,8 @@ public class FilmController {
     @PutMapping
     public Film put(@Valid @RequestBody Film film) {
 
-        if (film.getReleaseDate().isBefore(Util.DATE_LIMIT)) {
-            log.warn("Ошибка при добавлении фильма: дата релиза не может быть ранее " + Util.DATE_LIMIT);
+        if (Util.filmDateCheck(film)) {
+            log.warn("Ошибка при добавлении фильма: дата релиза не может быть ранее {} ",Util.DATE_LIMIT);
             throw new ValidationException("Ошибка при добавлении фильма: дата релиза не может быть ранее " + Util.DATE_LIMIT);
         }
         if (films.containsKey(film.getId())) {
