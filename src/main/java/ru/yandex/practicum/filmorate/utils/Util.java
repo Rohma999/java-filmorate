@@ -16,11 +16,6 @@ public class Util {
     }
 
     public static boolean filmDateCheck(Film film) {
-        if (film.getReleaseDate().isBefore(Util.DATE_LIMIT)) {
-            return true;
-        }
-        else {
-            return false;
-        }
+        return film.getReleaseDate().isBefore(Util.DATE_LIMIT);
     }
 }

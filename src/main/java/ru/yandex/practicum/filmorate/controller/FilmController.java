@@ -3,11 +3,8 @@ package ru.yandex.practicum.filmorate.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.ElementDoesNotExistException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.utils.IdGenerator;
-import ru.yandex.practicum.filmorate.utils.Util;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
 import java.util.*;
@@ -19,43 +16,42 @@ import java.util.*;
 @RequestMapping("/films")
 public class FilmController {
 
-    private final Map<Integer, Film> films = new HashMap<>();
-    private final IdGenerator idGenerator;
+    private final FilmService filmService;
 
     @GetMapping
-    public List<Film> findAll() {
-        log.info("Количество фильмов: {} ", films.size());
-        return new ArrayList<>(films.values());
+    public Collection<Film> findAll() {
+        return filmService.findAll();
+    }
+
+    @GetMapping("/{id}")
+    public Film findFilm(@PathVariable long id) {
+        return filmService.findFilmById(id);
     }
 
     @PostMapping
     public Film create(@Valid @RequestBody Film film) {
-        if (Util.filmDateCheck(film)) {
-            log.warn("Ошибка при добавлении фильма: дата релиза не может быть ранее {}",Util.DATE_LIMIT);
-            throw new ValidationException("Ошибка при добавлении фильма: дата релиза не может быть ранее " + Util.DATE_LIMIT);
-        }
-        film.setId(idGenerator.generateId());
-        films.put(film.getId(), film);
-        log.info("Фильм «{}» успешно добавлен ", film.getName());
-        return film;
+        return filmService.create(film);
     }
 
 
     @PutMapping
     public Film put(@Valid @RequestBody Film film) {
+        return filmService.put(film);
+    }
 
-        if (Util.filmDateCheck(film)) {
-            log.warn("Ошибка при добавлении фильма: дата релиза не может быть ранее {} ",Util.DATE_LIMIT);
-            throw new ValidationException("Ошибка при добавлении фильма: дата релиза не может быть ранее " + Util.DATE_LIMIT);
-        }
-        if (films.containsKey(film.getId())) {
-            films.put(film.getId(), film);
-            log.info("Данные фильма «{}» успешно обновлены", film.getName());
-            return film;
-        } else {
-            log.warn("Фильм еще не добавлен");
-            throw new ElementDoesNotExistException("Фильм еще не добавлен");
-        }
+    @PutMapping("/{id}/like/{userId}")
+    public void addLike(@PathVariable long id, @PathVariable long userId) {
+        filmService.addLike(id, userId);
+    }
+
+    @DeleteMapping("/{id}/like/{userId}")
+    public void deleteLike(@PathVariable long id, @PathVariable long userId) {
+        filmService.deleteLike(id, userId);
+    }
+
+    @GetMapping("/popular")
+    public Collection<Film> getPopularFilms(@RequestParam(required = false, defaultValue = "10") Integer count) {
+        return filmService.getPopularFilms(count);
     }
 }
 
