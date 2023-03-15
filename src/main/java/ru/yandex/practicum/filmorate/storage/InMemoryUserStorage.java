@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.utils.IdGenerator;
-import ru.yandex.practicum.filmorate.utils.Util;
+import ru.yandex.practicum.filmorate.utils.Validator;
 
 import java.util.*;
 
@@ -23,7 +23,7 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public void create(User user) {
-        Util.setUserNameIfEmpty(user);
+        Validator.setUserNameIfEmpty(user);
         user.setId(idGenerator.generateId());
         users.put(user.getId(), user);
         emails.add(user.getEmail());
@@ -32,7 +32,9 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public Collection<User> findAll() {
-        return users.values();
+        Collection<User> userResponse = users.values();
+        log.info("Количество пользователей: {} ", userResponse.size());
+        return userResponse;
     }
 
     @Override
@@ -42,7 +44,7 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public void put(User user) {
-        Util.setUserNameIfEmpty(user);
+        Validator.setUserNameIfEmpty(user);
         users.put(user.getId(), user);
         log.info("Данный пользователя успешно обновлены email {}", user.getEmail());
     }

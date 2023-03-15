@@ -25,7 +25,7 @@ public class UserController {
 
     @GetMapping("/{id}")
     public User findFilm(@PathVariable long id) {
-        return userService.findUserById(id);
+        return userService.getUserById(id);
     }
 
     @GetMapping({"/{id}/friends"})

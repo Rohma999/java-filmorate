@@ -22,15 +22,15 @@ public class ErrorHandler {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler
     public ErrorResponse handleElementDoesNotExistException(ElementDoesNotExistException e) {
-        log.warn("{}", e.getMessage());
-        return new ErrorResponse("error", e.getMessage());
+        log.error("404 {}", e.getMessage());
+        return new ErrorResponse(e.getMessage());
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler
     public ErrorResponse handleValidationException(ValidationException e) {
-        log.warn("{}", e.getMessage());
-        return new ErrorResponse("error", e.getMessage());
+        log.error("400 {}", e.getMessage());
+        return new ErrorResponse(e.getMessage());
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -39,14 +39,21 @@ public class ErrorHandler {
         List<String> fieldErrors = e.getFieldErrors().stream()
                 .map(fieldError ->
                         fieldError.getField() + ":" + fieldError.getDefaultMessage()).collect(Collectors.toList());
-        log.warn("{}", e.getMessage());
-        return new ErrorResponse("error", fieldErrors.toString());
+        log.error("400 {}", fieldErrors);
+        return new ErrorResponse(fieldErrors.toString());
     }
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler
     public ErrorResponse handleEmailAlreadyExistException(EmailAlreadyExistException e) {
-        log.warn("{}", e.getMessage());
-        return new ErrorResponse("error", e.getMessage());
+        log.error("500 {}", e.getMessage());
+        return new ErrorResponse(e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleThrowable(final Throwable e) {
+        log.error("500 {}", e.getMessage(), e);
+        return new ErrorResponse(e.getMessage());
     }
 }

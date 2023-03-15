@@ -24,28 +24,27 @@ public class UserService {
         return userStorage.findAll();
     }
 
-    public User findUserById(long id) {
+    public User getUserById(long id) {
         return userStorage.findUser(id).orElseThrow(() ->
                 new ElementDoesNotExistException("Такого пользователя не существует"));
     }
 
     public User create(User user) {
         if (userStorage.getEmails().contains(user.getEmail())) {
-            log.warn("Пользователь с email {} уже существует", user.getEmail());
             throw new EmailAlreadyExistException("Пользователь с email " + user.getEmail() + " уже существует");
         }
         userStorage.create(user);
         return user;
     }
 
-
     public User put(User user) {
-        if (userStorage.findUser(user.getId()).isPresent()) {
+        if (userStorage.findUser(user.getId()).isEmpty()) {
+            throw new ElementDoesNotExistException("Такого пользователя не существует");
+        } else {
             if (userStorage.findUser(user.getId()).get().getEmail().equals(user.getEmail())) {
                 userStorage.put(user);
                 return user;
             } else if (userStorage.getEmails().contains(user.getEmail())) {
-                log.warn("Пользователь с email {} уже существует", user.getEmail());
                 throw new EmailAlreadyExistException("Пользователь с email " + user.getEmail() + " уже существует");
             } else {
                 userStorage.getEmails().remove(userStorage.findUser(user.getId()).get().getEmail());
@@ -53,11 +52,7 @@ public class UserService {
                 userStorage.getEmails().add(user.getEmail());
                 return user;
             }
-        } else {
-            log.warn("Такого пользователя не существует");
-            throw new ElementDoesNotExistException("Такого пользователя не существует");
         }
-
     }
 
     public void addFriend(long id, long friendId) {
@@ -86,8 +81,10 @@ public class UserService {
         User user = userStorage.findUser(id).orElseThrow(() ->
                 new ElementDoesNotExistException(("Такого пользователя не существует")));
 
-        return user.getFriends().stream().map(userStorage::findUser)
+        Collection<User> friends = user.getFriends().stream().map(userStorage::findUser)
                 .map(Optional::get).collect(Collectors.toList());
+        log.info("Друзья пользователя с id {} : {}", id, friends);
+        return friends;
     }
 
     public Collection<User> findCommonUserFriends(long id, long otherId) {
@@ -97,8 +94,9 @@ public class UserService {
         User otherUser = userStorage.findUser(otherId).orElseThrow(() ->
                 new ElementDoesNotExistException(("Пользователя с id " + otherId + " не существует")));
 
-        return user.getFriends().stream().filter(otherUser.getFriends()::contains).
+        Collection<User> commonFriends = user.getFriends().stream().filter(otherUser.getFriends()::contains).
                 map(userId -> userStorage.findUser(userId).get()).collect(Collectors.toList());
+        log.info("Общие друзья пользователей с id {} и {} : {}", id, otherId, commonFriends);
+        return commonFriends;
     }
-
 }

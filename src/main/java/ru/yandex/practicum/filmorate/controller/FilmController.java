@@ -25,14 +25,13 @@ public class FilmController {
 
     @GetMapping("/{id}")
     public Film findFilm(@PathVariable long id) {
-        return filmService.findFilmById(id);
+        return filmService.getFilmById(id);
     }
 
     @PostMapping
     public Film create(@Valid @RequestBody Film film) {
         return filmService.create(film);
     }
-
 
     @PutMapping
     public Film put(@Valid @RequestBody Film film) {

@@ -32,8 +32,9 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Collection<Film> findAll() {
-        log.info("Количество фильмов: {} ", films.size());
-        return films.values();
+        Collection<Film> filmsResponse = films.values();
+        log.info("Количество фильмов: {} ", filmsResponse.size());
+        return filmsResponse;
     }
 
     @Override
