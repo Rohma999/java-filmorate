@@ -7,6 +7,9 @@ import ru.yandex.practicum.filmorate.exception.ElementDoesNotExistException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import org.junit.jupiter.api.Test;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.utils.IdGenerator;
 
 
@@ -14,11 +17,13 @@ import java.time.LocalDate;
 
 public class FilmControllerTest {
 
-    FilmController filmController;
+    FilmController filmController ;
 
     @BeforeEach
-    public void beforeAll() {
-        filmController = new FilmController(new IdGenerator());
+    public void setUp() {
+        filmController =
+                new FilmController(new FilmService(new InMemoryFilmStorage(new IdGenerator()),
+                        new InMemoryUserStorage(new IdGenerator())));
     }
 
     @Test

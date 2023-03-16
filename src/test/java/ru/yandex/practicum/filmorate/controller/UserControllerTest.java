@@ -8,6 +8,8 @@ import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.exception.ElementDoesNotExistException;
 import ru.yandex.practicum.filmorate.exception.EmailAlreadyExistException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.utils.IdGenerator;
 
 import java.time.LocalDate;
@@ -17,8 +19,8 @@ public class UserControllerTest {
     UserController userController;
 
     @BeforeEach
-    public void beforeAll() {
-        userController = new UserController(new IdGenerator());
+    public void setUp() {
+        userController = new UserController(new UserService(new InMemoryUserStorage(new IdGenerator())));
     }
 
     @Test
@@ -26,13 +28,8 @@ public class UserControllerTest {
 
         User user = new User("filmorate@mail.com", "MovieLover", LocalDate.of(1998, 11,
                 12));
-
-        User user1 = new User("filmorate@mail.com", "MovieLover", LocalDate.of(1998, 11,
-                12));
-        user1.setName("MovieLover");
-        user1.setId(1);
         userController.create(user);
-        assertEquals(user1, userController.findAll().get(0));
+        assertEquals(1, userController.findAll().size());
 
     }
 

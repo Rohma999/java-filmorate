@@ -5,7 +5,7 @@ import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
 
-public class Util {
+public class Validator {
 
     public static final LocalDate DATE_LIMIT = LocalDate.of(1895, 12, 28);
 
@@ -16,11 +16,6 @@ public class Util {
     }
 
     public static boolean filmDateCheck(Film film) {
-        if (film.getReleaseDate().isBefore(Util.DATE_LIMIT)) {
-            return true;
-        }
-        else {
-            return false;
-        }
+        return film.getReleaseDate().isBefore(Validator.DATE_LIMIT);
     }
 }
