@@ -13,6 +13,7 @@ import java.util.Optional;
 
 @Slf4j
 @Component
+@Deprecated
 public class InMemoryFilmStorage implements FilmStorage {
 
     private final Map<Long, Film> films = new HashMap<>();
@@ -24,10 +25,11 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public void create(Film film) {
+    public Film create(Film film) {
         film.setId(idGenerator.generateId());
         films.put(film.getId(), film);
         log.info("Фильм «{}» успешно добавлен ", film.getName());
+        return film;
     }
 
     @Override
@@ -43,8 +45,14 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public void put(Film film) {
+    public Film put(Film film) {
         films.put(film.getId(), film);
         log.info("Данные фильма «{}» успешно обновлены", film.getName());
+        return film;
+    }
+
+    @Override
+    public Collection<Film> getPopularFilms(int count) {
+        throw new UnsupportedOperationException("Метод еще не реализован");
     }
 }

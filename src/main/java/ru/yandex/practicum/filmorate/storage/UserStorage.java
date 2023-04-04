@@ -1,21 +1,23 @@
 package ru.yandex.practicum.filmorate.storage;
 
-import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.Collection;
 import java.util.Optional;
-import java.util.Set;
+
 
 public interface UserStorage {
 
-    void create(User user);
+    User create(User user);
 
     Collection<User> findAll();
 
     Optional<User> findUser(Long id);
 
-    void put(User user);
+    User put(User user);
 
-    Set<String> getEmails();
+    Collection<User> findCommonUserFriends(long id, long otherId);
+
+    Collection<User> findUserFriends(long id);
+
 }

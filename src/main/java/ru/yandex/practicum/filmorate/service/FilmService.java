@@ -2,19 +2,19 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.DAO.MpaDbStorage;
 import ru.yandex.practicum.filmorate.exception.ElementDoesNotExistException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
-import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Mpa;
+import ru.yandex.practicum.filmorate.storage.*;
 import ru.yandex.practicum.filmorate.utils.Validator;
 
 import java.util.*;
-import java.util.stream.Collectors;
+
 
 @Slf4j
 @Service
@@ -22,66 +22,105 @@ public class FilmService {
 
     private final FilmStorage filmStorage;
 
-    private final UserStorage userStorage;
+    private final GenreStorage genreStorage;
+
+    private final LikeStorage likeStorage;
+
+    private final MpaDbStorage mpaStorage;
 
     @Autowired
-    public FilmService(InMemoryFilmStorage inMemoryFilmStorage, InMemoryUserStorage inMemoryUserStorage) {
-        this.filmStorage = inMemoryFilmStorage;
-        this.userStorage = inMemoryUserStorage;
+    public FilmService(@Qualifier("FilmDbStorage") FilmStorage filmStorage,
+                       @Qualifier("GenreDbStorage") GenreStorage genreStorage,
+                       @Qualifier("LikeDbStorage") LikeStorage likeStorage,
+                       @Qualifier("MpaDbStorage") MpaDbStorage mpaStorage) {
+        this.filmStorage = filmStorage;
+        this.genreStorage = genreStorage;
+        this.likeStorage = likeStorage;
+        this.mpaStorage = mpaStorage;
     }
 
     public Collection<Film> findAll() {
-        return filmStorage.findAll();
+        Collection<Film> films = filmStorage.findAll();
+        films.forEach(film -> film.getGenres().addAll(genreStorage.findGenreByFilmId(film.getId())));
+        log.info("Передаем в контроллер все фильмы : {}", films);
+        return films;
     }
 
     public Film getFilmById(long id) {
-        return filmStorage.findFilm(id).orElseThrow(() -> new ElementDoesNotExistException("Такого фильма не существует"));
+        Film film = filmStorage.findFilm(id).orElseThrow(() ->
+                new ElementDoesNotExistException("Фильма с id " + id + " не существет"));
+        List<Genre> genres = genreStorage.findGenreByFilmId(film.getId());
+        film.getGenres().addAll(genres);
+        log.info("Передаем в контроллер фильм : {}", film);
+        return film;
     }
 
     public Film create(Film film) {
         if (Validator.filmDateCheck(film)) {
             throw new ValidationException("Ошибка при добавлении фильма: дата релиза не может быть ранее " + Validator.DATE_LIMIT);
         }
-        filmStorage.create(film);
-        return film;
+        Film movie = filmStorage.create(film);
+        if (movie.getGenres() != null) {
+            genreStorage.batchGenreInsert(movie);
+        }
+        log.info("Передаем в контроллер созданный фильм : {}", film);
+        return movie;
     }
 
     public Film put(Film film) {
         if (Validator.filmDateCheck(film)) {
             throw new ValidationException("Ошибка при добавлении фильма: дата релиза не может быть ранее " + Validator.DATE_LIMIT);
         }
-        if (filmStorage.findFilm(film.getId()).isEmpty()) {
-            throw new ElementDoesNotExistException("Фильм еще не добавлен");
+        Film movie = filmStorage.put(film);
+        if (film.getGenres() != null) {
+            genreStorage.deleteFilmGenre(film.getId());
+            genreStorage.batchGenreInsert(film);
         }
-        filmStorage.put(film);
-        return film;
+        log.info("Передаем в контроллер обновленный фильм : {}", film);
+        return movie;
     }
 
     public void addLike(long id, long userId) {
-        Film film = filmStorage.findFilm(id).orElseThrow(() ->
-                new ElementDoesNotExistException("Невозможно поставить лайк,фильм с id " + id + " не существует"));
-
-        User user = userStorage.findUser(userId).orElseThrow(() ->
-                new ElementDoesNotExistException("Невозможно поставить лайк,пользователя с id " + id + " не существует"));
-        film.getLikes().add(userId);
-        log.info("Пользователь {} поставил лайк фильму {}", user.getEmail(), film.getName());
+        if (likeStorage.addLike(id, userId) == 0) {
+            throw new ElementDoesNotExistException("Лайк уже поставлен");
+        }
+        log.info("Пользователь c id {} поставил лайк фильму c id {}", userId, id);
     }
 
     public void deleteLike(long id, long userId) {
-        Film film = filmStorage.findFilm(id).orElseThrow(() ->
-                new ElementDoesNotExistException("Невозможно удалить лайк,фильм с id " + id + " не существует"));
-
-        User user = userStorage.findUser(userId).orElseThrow(() ->
-                new ElementDoesNotExistException("Невозможно удалить лайк,пользователя с id " + id + " не существует"));
-        film.getLikes().remove(userId);
-        log.info("Пользователь {} убрал лайк фильму {}", user.getEmail(), film.getName());
+        if (likeStorage.deleteLike(id, userId) == 0) {
+            throw new ElementDoesNotExistException("Лайк от пользователя с id " + userId + " фильму с id " + id + " еще не поставлен");
+        }
+        log.info("Пользователь {} удалил лайк фильму {}", userId, id);
     }
 
     public Collection<Film> getPopularFilms(int count) {
-        Collection<Film> films = filmStorage.findAll();
-        Collection<Film> popularFilms = films.stream().sorted(Comparator.comparing(film -> -film.getLikes().size()))
-                .limit(count).collect(Collectors.toList());
-        log.info("Топ из {} фильмов : {}", count, popularFilms);
-        return popularFilms;
+        Collection<Film> films = filmStorage.getPopularFilms(count);
+        log.info("Передаем в контроллер топ из {} фильмов : {}", count, films);
+        return films;
+    }
+
+    public Collection<Mpa> getAllMpa() {
+        Collection<Mpa> allMpa = mpaStorage.findAll();
+        log.info("Передаем в контроллер все рейтинги : {}", allMpa);
+        return allMpa;
+    }
+
+    public Mpa getMpa(int id) {
+        Mpa mpa = mpaStorage.getMpa(id);
+        log.info("Передаем в контроллер рейтинг с id {} : {}", id, mpa);
+        return mpa;
+    }
+
+    public Collection<Genre> getGenres() {
+        Collection<Genre> genres = genreStorage.findAll();
+        log.info("Передаем в контроллер все жанры : {}", genres);
+        return genres;
+    }
+
+    public Genre getGenre(int id) {
+        Genre genre = genreStorage.getGenre(id);
+        log.info("Передаем в контроллер жанр с id {} : {}", id, genre);
+        return genre;
     }
 }
