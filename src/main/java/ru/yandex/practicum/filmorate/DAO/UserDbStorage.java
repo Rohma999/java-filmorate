@@ -59,28 +59,6 @@ public class UserDbStorage implements UserStorage {
         return user;
     }
 
-    @Override
-    public Collection<User> findUserFriends(long id) {
-        String sql = "SELECT * FROM USERS u " +
-                "WHERE u.ID IN(SELECT f.FRIEND_ID FROM FRIENDS f " +
-                "WHERE f.user_id = ?);";
-        List<User> friends = jdbcTemplate.query(sql, (rs, rowNum) -> makeUser(rs), id);
-        return friends;
-    }
-
-    @Override
-    public Collection<User> findCommonUserFriends(long id, long otherId) {
-        String sql = "select * " +
-                "from users as u where u.id IN" +
-                "(SELECT f.FRIEND_ID " +
-                "FROM FRIENDS f " +
-                "WHERE f.USER_ID  IN (?, ?) " +
-                "GROUP BY f.friend_id " +
-                "HAVING count(friend_id) = 2);";
-        List<User> commonFriends = jdbcTemplate.query(sql, (rs, rowNum) -> makeUser(rs), id, otherId);
-        return commonFriends;
-    }
-
     private long insertUser(User user) {
         SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
                 .withTableName("users")

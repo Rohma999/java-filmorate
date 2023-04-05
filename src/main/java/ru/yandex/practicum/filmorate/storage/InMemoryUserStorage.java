@@ -55,14 +55,4 @@ public class InMemoryUserStorage implements UserStorage {
     public Set<String> getEmails() {
         return emails;
     }
-
-    @Override
-    public Collection<User> findCommonUserFriends(long id, long otherId) {
-        throw new UnsupportedOperationException("Метод еще не реализован");
-    }
-
-    @Override
-    public Collection<User> findUserFriends(long id) {
-        throw new UnsupportedOperationException("Метод еще не реализован");
-    }
 }

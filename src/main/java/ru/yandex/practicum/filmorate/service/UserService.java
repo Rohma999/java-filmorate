@@ -69,13 +69,13 @@ public class UserService {
     }
 
     public Collection<User> findUserFriends(long id) {
-        Collection<User> friends = userStorage.findUserFriends(id);
+        Collection<User> friends = friendStorage.findUserFriends(id);
         log.info("Друзья пользователя с id {} : {}", id, friends);
         return friends;
     }
 
     public Collection<User> findCommonUserFriends(long id, long otherId) {
-        Collection<User> commonFriends = userStorage.findCommonUserFriends(id, otherId);
+        Collection<User> commonFriends = friendStorage.findCommonUserFriends(id, otherId);
         log.info("Общие друзья пользователей с id {} и {} : {}", id, otherId, commonFriends);
         return commonFriends;
     }

@@ -30,6 +30,10 @@ public class FilmServiceTest {
 
     private final FilmService filmService;
 
+    private final MpaService mpaService;
+
+    private final GenreService genreService;
+
     private final UserService userService;
 
 
@@ -117,38 +121,38 @@ public class FilmServiceTest {
 
     @Test
     public void shouldGetGenreById() {
-        Genre genre = filmService.getGenre(1);
+        Genre genre = genreService.getGenre(1);
 
         assertEquals(new Genre(1, "Комедия"), genre);
     }
 
     @Test
     public void shouldReturnAllGenres() {
-        Collection<Genre> genres = filmService.getGenres();
+        Collection<Genre> genres = genreService.getGenres();
 
         assertEquals(6, genres.size());
     }
 
     @Test
     public void shoutThrowGenreNotFoundException() {
-        assertThrows(ElementDoesNotExistException.class, () -> filmService.getGenre(999));
+        assertThrows(ElementDoesNotExistException.class, () -> genreService.getGenre(999));
     }
 
     @Test
     public void shouldGetMpaById() {
-        Mpa mpa = filmService.getMpa(1);
+        Mpa mpa = mpaService.getMpa(1);
 
         assertEquals(new Mpa(1, "G"), mpa);
     }
 
     @Test
     public void shoutThrowMpaNotFoundException() {
-        assertThrows(ElementDoesNotExistException.class, () -> filmService.getMpa(999));
+        assertThrows(ElementDoesNotExistException.class, () -> mpaService.getMpa(999));
     }
 
     @Test
     public void shouldReturnAllMpa() {
-        Collection<Mpa> allMpa = filmService.getAllMpa();
+        Collection<Mpa> allMpa = mpaService.getAllMpa();
 
         assertEquals(5, allMpa.size());
     }

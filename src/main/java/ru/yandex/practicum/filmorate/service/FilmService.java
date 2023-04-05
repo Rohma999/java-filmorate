@@ -9,7 +9,6 @@ import ru.yandex.practicum.filmorate.exception.ElementDoesNotExistException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.*;
 import ru.yandex.practicum.filmorate.utils.Validator;
 
@@ -98,29 +97,5 @@ public class FilmService {
         Collection<Film> films = filmStorage.getPopularFilms(count);
         log.info("Передаем в контроллер топ из {} фильмов : {}", count, films);
         return films;
-    }
-
-    public Collection<Mpa> getAllMpa() {
-        Collection<Mpa> allMpa = mpaStorage.findAll();
-        log.info("Передаем в контроллер все рейтинги : {}", allMpa);
-        return allMpa;
-    }
-
-    public Mpa getMpa(int id) {
-        Mpa mpa = mpaStorage.getMpa(id);
-        log.info("Передаем в контроллер рейтинг с id {} : {}", id, mpa);
-        return mpa;
-    }
-
-    public Collection<Genre> getGenres() {
-        Collection<Genre> genres = genreStorage.findAll();
-        log.info("Передаем в контроллер все жанры : {}", genres);
-        return genres;
-    }
-
-    public Genre getGenre(int id) {
-        Genre genre = genreStorage.getGenre(id);
-        log.info("Передаем в контроллер жанр с id {} : {}", id, genre);
-        return genre;
     }
 }

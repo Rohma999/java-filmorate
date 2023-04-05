@@ -15,9 +15,4 @@ public interface UserStorage {
     Optional<User> findUser(Long id);
 
     User put(User user);
-
-    Collection<User> findCommonUserFriends(long id, long otherId);
-
-    Collection<User> findUserFriends(long id);
-
 }
