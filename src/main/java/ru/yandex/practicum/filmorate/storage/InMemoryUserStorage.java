@@ -11,6 +11,7 @@ import java.util.*;
 
 @Slf4j
 @Component
+@Deprecated
 public class InMemoryUserStorage implements UserStorage {
     private final Map<Long, User> users = new HashMap<>();
     private final Set<String> emails = new HashSet<>();
@@ -22,12 +23,13 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public void create(User user) {
+    public User create(User user) {
         Validator.setUserNameIfEmpty(user);
         user.setId(idGenerator.generateId());
         users.put(user.getId(), user);
         emails.add(user.getEmail());
         log.info("Пользователь с email {} успешно добавлен ", user.getEmail());
+        return user;
     }
 
     @Override
@@ -43,10 +45,11 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public void put(User user) {
+    public User put(User user) {
         Validator.setUserNameIfEmpty(user);
         users.put(user.getId(), user);
         log.info("Данный пользователя успешно обновлены email {}", user.getEmail());
+        return user;
     }
 
     public Set<String> getEmails() {

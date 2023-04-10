@@ -6,11 +6,13 @@ import java.util.Collection;
 import java.util.Optional;
 
 public interface FilmStorage {
-    void create(Film film);
+    Film create(Film film);
 
     Collection<Film> findAll();
 
     Optional<Film> findFilm(Long id);
 
-    void put(Film film);
+    Film put(Film film);
+
+    Collection<Film> getPopularFilms(int count);
 }
